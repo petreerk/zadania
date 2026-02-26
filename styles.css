@@ -161,6 +161,56 @@ button.secondary {
   margin-bottom: 14px;
 }
 
+.sheet-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sheet-title-wrap h2 {
+  margin: 0;
+}
+
+.uwaga-anim-btn {
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid #f6b384;
+  background: #ffe5cf;
+  color: #5c2b0a;
+  padding: 0 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  animation: uwaga-idle 1.3s ease-in-out infinite;
+}
+
+.uwaga-anim-btn.is-animated {
+  animation: uwaga-clicked 0.7s ease-in-out infinite;
+  background: #ffd2ab;
+}
+
+@keyframes uwaga-idle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes uwaga-clicked {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-2deg) scale(1.04);
+  }
+  75% {
+    transform: rotate(2deg) scale(1.04);
+  }
+}
+
 .problem-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));

@@ -18,6 +18,7 @@ const elements = {
   problemGrid: document.getElementById("problemGrid"),
   sheetMeta: document.getElementById("sheetMeta"),
   sheetWrap: document.querySelector(".sheet-wrap"),
+  uwagaAnimBtn: document.getElementById("uwagaAnimBtn"),
 };
 
 const defaultSettings = {
@@ -250,6 +251,10 @@ function initialize() {
     showAnswers = false;
     setSettings(defaultSettings);
     renderProblems();
+  });
+  elements.uwagaAnimBtn?.addEventListener("click", () => {
+    const isAnimated = elements.uwagaAnimBtn.classList.toggle("is-animated");
+    elements.uwagaAnimBtn.setAttribute("aria-pressed", String(isAnimated));
   });
 
   renderProblems();
