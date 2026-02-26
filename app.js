@@ -209,9 +209,11 @@ function createProblem(settings) {
     const exponent = Math.floor(Math.random() * 5) + 2; // 2..6
     const functionText = formatMonomial(coefficient, exponent, true);
     const derivativeText = formatMonomial(coefficient * exponent, exponent - 1, false);
+    const derivativeHtml = formatMonomial(coefficient * exponent, exponent - 1, true);
     return {
       html: `<span class="derivative-expression">d/dx (${functionText}) =</span>`,
       answer: derivativeText,
+      answerHtml: derivativeHtml,
     };
   }
 
@@ -233,10 +235,17 @@ function createProblem(settings) {
     exponent - 1,
     false,
   );
+  const derivativeHtml = formatChainDerivative(
+    exponent * innerA,
+    innerHtml,
+    exponent - 1,
+    true,
+  );
 
   return {
     html: `<span class="derivative-expression">d/dx ((${innerHtml})<sup>${exponent}</sup>) =</span>`,
     answer: derivativeText,
+    answerHtml: derivativeHtml,
   };
 }
 
@@ -262,7 +271,7 @@ function renderProblems() {
     if (showAnswers) {
       const ans = document.createElement("p");
       ans.className = "answer";
-      ans.textContent = `Answer: ${problem.answer}`;
+      ans.innerHTML = `Answer: ${problem.answerHtml ?? problem.answer}`;
       card.appendChild(ans);
     }
 
