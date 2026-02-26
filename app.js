@@ -36,6 +36,7 @@ const defaultSettings = {
 };
 
 let showAnswers = false;
+let currentProblems = [];
 
 const worksheetMonkeyImages = [
   "https://loremflickr.com/1600/1000/monkey,face?lock=211",
@@ -249,17 +250,19 @@ function createProblem(settings) {
   };
 }
 
-function renderProblems() {
+function renderProblems({ regenerate = true } = {}) {
   const settings = clampSettings(getSettings());
   applyTheme(settings);
   saveSettings();
 
-  const problems = Array.from({ length: settings.problemCount }, () =>
-    createProblem(settings),
-  );
+  if (regenerate || currentProblems.length === 0) {
+    currentProblems = Array.from({ length: settings.problemCount }, () =>
+      createProblem(settings),
+    );
+  }
 
   elements.problemGrid.innerHTML = "";
-  problems.forEach((problem, i) => {
+  currentProblems.forEach((problem, i) => {
     const card = document.createElement("article");
     card.className = "problem-card";
 
@@ -311,7 +314,7 @@ function initialize() {
   elements.generateBtn.addEventListener("click", renderProblems);
   elements.toggleAnswersBtn.addEventListener("click", () => {
     showAnswers = !showAnswers;
-    renderProblems();
+    renderProblems({ regenerate: false });
   });
   elements.resetBtn.addEventListener("click", () => {
     showAnswers = false;
