@@ -145,41 +145,98 @@ function formatNumber(value) {
   return value.toFixed(1);
 }
 
+function formatLinearExpression(a, b, html = false) {
+  const variable = "x";
+  let firstPart = "";
+
+  if (a === 0) {
+    firstPart = "0";
+  } else if (a === 1) {
+    firstPart = variable;
+  } else if (a === -1) {
+    firstPart = `-${variable}`;
+  } else {
+    firstPart = `${formatNumber(a)}${variable}`;
+  }
+
+  if (b === 0) return firstPart;
+  const absB = formatNumber(Math.abs(b));
+  const sign = b > 0 ? "+" : "-";
+  return html ? `${firstPart} ${sign} ${absB}` : `${firstPart} ${sign} ${absB}`;
+}
+
+function formatMonomial(coefficient, exponent, html = false) {
+  if (coefficient === 0) return "0";
+
+  const absCoefficient = Math.abs(coefficient);
+  const absCoefficientText = formatNumber(absCoefficient);
+  const sign = coefficient < 0 ? "-" : "";
+
+  if (exponent === 0) return `${sign}${absCoefficientText}`;
+
+  const variablePart =
+    exponent === 1 ? "x" : html ? `x<sup>${exponent}</sup>` : `x^${exponent}`;
+
+  if (absCoefficient === 1) return `${sign}${variablePart}`;
+  return `${sign}${absCoefficientText}${variablePart}`;
+}
+
+function formatChainDerivative(outerCoefficient, innerExpression, exponent, html = false) {
+  if (outerCoefficient === 0) return "0";
+
+  const absOuter = Math.abs(outerCoefficient);
+  const sign = outerCoefficient < 0 ? "-" : "";
+  const coeffText = absOuter === 1 ? "" : formatNumber(absOuter);
+  const expText = exponent === 1 ? "" : html ? `<sup>${exponent}</sup>` : `^${exponent}`;
+
+  return `${sign}${coeffText}(${innerExpression})${expText}`;
+}
+
 function createProblem(settings) {
   const ops = getOperations(settings);
   const op = ops[Math.floor(Math.random() * ops.length)];
 
   if (op === "pow") {
-    let base = Math.round(randomInRange(settings.minValue, settings.maxValue, false));
-    base = normalizeNumber(base, settings);
-    if (settings.allowNegatives && Math.random() > 0.5) base *= -1;
+    let coefficient = randomInRange(
+      settings.minValue,
+      settings.maxValue,
+      settings.allowDecimals,
+    );
+    coefficient = normalizeNumber(coefficient, settings);
+    if (settings.allowNegatives && Math.random() > 0.5) coefficient *= -1;
+    if (coefficient === 0) coefficient = 1;
 
-    const exponent = Math.floor(Math.random() * 3) + 2; // 2..4
-    const answer = Number((base ** exponent).toFixed(2));
+    const exponent = Math.floor(Math.random() * 5) + 2; // 2..6
+    const functionText = formatMonomial(coefficient, exponent, true);
+    const derivativeText = formatMonomial(coefficient * exponent, exponent - 1, false);
     return {
-      html: `<span class="power"><span>${formatNumber(base)}</span><sup>${exponent}</sup></span> =`,
-      answer,
+      html: `<span class="derivative-expression">d/dx (${functionText}) =</span>`,
+      answer: derivativeText,
     };
   }
 
-  const rootDegree = Math.random() > 0.5 ? 2 : 3;
-  let rootResult = Math.max(
-    1,
-    Math.round(randomInRange(settings.minValue, settings.maxValue, false)),
+  let innerA = randomInRange(settings.minValue, settings.maxValue, settings.allowDecimals);
+  innerA = normalizeNumber(innerA, settings);
+  if (settings.allowNegatives && Math.random() > 0.5) innerA *= -1;
+  if (innerA === 0) innerA = 1;
+
+  let innerB = randomInRange(settings.minValue, settings.maxValue, settings.allowDecimals);
+  innerB = normalizeNumber(innerB, settings);
+  if (settings.allowNegatives && Math.random() > 0.5) innerB *= -1;
+
+  const exponent = Math.floor(Math.random() * 4) + 2; // 2..5
+  const innerHtml = formatLinearExpression(innerA, innerB, true);
+  const innerText = formatLinearExpression(innerA, innerB, false);
+  const derivativeText = formatChainDerivative(
+    exponent * innerA,
+    innerText,
+    exponent - 1,
+    false,
   );
-  rootResult = Math.min(rootResult, 12);
-  let radicand = rootResult ** rootDegree;
 
-  if (settings.allowNegatives && rootDegree === 3 && Math.random() > 0.5) {
-    radicand *= -1;
-    rootResult *= -1;
-  }
-
-  const degreeMarkup =
-    rootDegree === 3 ? '<span class="root-degree">3</span>' : "";
   return {
-    html: `<span class="root-expression">${degreeMarkup}<span class="root-sign">√</span><span class="root-radicand">${formatNumber(radicand)}</span></span> =`,
-    answer: rootResult,
+    html: `<span class="derivative-expression">d/dx ((${innerHtml})<sup>${exponent}</sup>) =</span>`,
+    answer: derivativeText,
   };
 }
 
@@ -213,7 +270,7 @@ function renderProblems() {
   });
 
   const ops = getOperations(settings)
-    .map((op) => (op === "pow" ? "powers" : "roots"))
+    .map((op) => (op === "pow" ? "power rule" : "chain rule"))
     .join(" + ");
   elements.sheetMeta.textContent = `${settings.problemCount} problems • ${ops}`;
   elements.toggleAnswersBtn.textContent = showAnswers
